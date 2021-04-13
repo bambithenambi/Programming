@@ -4,6 +4,7 @@ import pandas as pd
 import json
 import os.path
 import webbrowser
+import threading
 #Initialize API instance
 api = TikTokApi.get_instance()
 #Open file of users
@@ -21,13 +22,27 @@ df = pd.DataFrame()
 ids = list()
 times = list()
 #iterate through all users and all videos, adding data to lists
-for username in userlist:
-    print("Sending Request for @"+username)
-    user_videos = api.get_user(username, count=10)
-    print("Request Reccieved")
-    for video in user_videos["items"]:
-        ids.append("https://www.tiktok.com/@"+username+"/video/"+video["id"])
-        times.append(datetime.fromtimestamp(video["createTime"]))
+def extract(users):
+    for username in users:
+        print("Sending Request for @"+username)
+        user_videos = api.get_user(username, count=10)
+        print("Request Reccieved")
+        for video in user_videos["items"]:
+            ids.append("https://www.tiktok.com/@"+username+"/video/"+video["id"])
+            times.append(datetime.fromtimestamp(video["createTime"]))
+#Use two threads to halve time for requests
+threads = []
+length = len(userlist)
+middle_index = length//2
+process1 = threading.Thread(target=extract, args=[userlist[:middle_index]])
+process1.start()
+threads.append(process1)
+process2 = threading.Thread(target=extract, args=[userlist[middle_index:]])
+process2.start()
+threads.append(process2)
+for process in threads:
+    process.join()
+
 #add lists to DF
 df['Video'] = ids
 df['Time'] = times
