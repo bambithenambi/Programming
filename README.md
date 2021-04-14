@@ -12,6 +12,7 @@
 Script takes two text files (**tiktoks.txt** and **vscos.txt**) with 1 username on each line and finds:
 - 5 most recent videos for each TikTok
 - 14 most recent images for each VSCO
+
 **WARNING! Both text files must exist with at least one username in each**
 
 On the first run:
