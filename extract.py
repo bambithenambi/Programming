@@ -1,37 +1,28 @@
-import re, json, requests, time
+# Enter a list of VSCO usernames and download their 14 latest pictures
+# Made using selenium and requests
+
+import re, json, requests
 from selenium import webdriver
-from bs4 import BeautifulSoup
+
 
 PATH = "/Users/Soccerboy_Krish/Documents/chromedriver"
 driver = webdriver.Chrome(PATH)
 
-# Way to download VSCO images as mht (MIME HTML) using selenium and requests
 
-def vsco_extract(username):
-    url = "https://vsco.co/" + username + "/gallery"
-    response = requests.get(url).text
-    data = json.loads(re.search(r'window\.__PRELOADED_STATE__ = (\{.*\})', response).group(1))
-    links = []
-    for img in data['entities']['images'].values():
-        links.append(img['permalink'])
+def vsco_extract(usernames):
+    for username in usernames:
+        url = "https://vsco.co/" + username + "/gallery"
+        response = requests.get(url).text
+        counter = 1
+        data = json.loads(re.search(r'window\.__PRELOADED_STATE__ = (\{.*\})', response).group(1))
+        links = []
+        for image in data['entities']['images'].values():
+            links.append(image['permalink'])
 
-    for link in links:
-        driver.get(link)
-        time.sleep(2)
-        open("out.mht", "wb").write((driver.get(link)))
+        for link in links:
+            driver.get(link)
+            driver.save_screenshot(username + str(counter) + ".png")
+            counter += 1
 
-print(vsco_extract("krishrastogi"))
-
-# Following code got image links using BeautifulSoup, not necessary anymore
-
-def get_html(username):
-    url = "https://vsco.co/" + username + "/gallery"
-    response = requests.get(url)
-    soup = BeautifulSoup(response.content, 'html.parser')
-    script = str(soup.find_all('script'))
-    start_index = script.find("entities")
-    end_index = script.find("articles", start_index)
-    images = script[start_index:end_index]
-    return images
-
-get_html("krishrastogi")
+# enter as many profiles as you want
+# vsco_extract(["krishrastogi", "chrysc", ""])
